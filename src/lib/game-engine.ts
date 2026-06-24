@@ -55,7 +55,7 @@ export function getChoiceResults(state: GameState): ChoiceResult[] {
 			text: choice.text,
 			count,
 			percentage,
-			isCorrect: choice.id === question.correctChoiceId,
+			isCorrect: question.correctChoiceId != null && choice.id === question.correctChoiceId,
 		};
 	});
 }

@@ -5,6 +5,7 @@ import { ResultBars } from "@/components/game/ResultBars";
 import { useQuestionCountdown } from "@/components/game/use-question-countdown";
 import { useGameSocket } from "@/components/game/use-game-socket";
 import { choiceStyles } from "@/lib/choice-styles";
+import { getHostActionAvailability, getRecommendedHostAction } from "@/lib/host-action-availability";
 import type { HostActionType } from "@/types/game";
 import QRCode from "qrcode";
 import Image from "next/image";
@@ -77,19 +78,51 @@ export function HostGame({ gameId, hostKey }: HostGameProps) {
 		}
 	};
 
+	const isAcceptingAnswers = snapshot?.status === "accepting-answers";
+	const countdownToneClass = (remainingSeconds ?? 0) <= 5 ? "text-rose-600" : "text-sky-600";
+	const currentQuestionNumber = snapshot?.currentQuestionNumber ?? 0;
+	const recommendedAction = getRecommendedHostAction(snapshot?.status ?? "waiting");
+	const hostActions: Array<{ type: HostActionType; label: string; toneClassName: string }> = [
+		{ type: "start-question", label: "Start", toneClassName: "liquid-button border border-sky-200/80 bg-sky-200/80 text-sky-950 hover:bg-sky-300/80" },
+		{ type: "close-answers", label: "Close", toneClassName: "liquid-control hover:bg-white/55" },
+		{ type: "show-result", label: "Result", toneClassName: "liquid-control hover:bg-white/55" },
+		{ type: "reveal-answer", label: "Reveal", toneClassName: "liquid-button border border-emerald-200/80 bg-emerald-200/80 text-emerald-950 hover:bg-emerald-300/80" },
+		{ type: "next-question", label: "Next", toneClassName: "liquid-button border border-indigo-200/80 bg-indigo-200/80 text-indigo-950 hover:bg-indigo-300/80" },
+		{ type: "reset-game", label: "Reset", toneClassName: "liquid-button border border-rose-200/80 bg-rose-200/80 text-rose-950 hover:bg-rose-300/80" },
+	];
+
 	return (
 		<main className="liquid-bg min-h-screen overflow-x-hidden p-3 text-slate-900 xl:h-screen xl:overflow-hidden">
-			<div className="grid min-h-[calc(100vh-1.5rem)] grid-cols-1 gap-3 xl:h-full xl:min-h-0 xl:grid-cols-[minmax(0,1fr)_320px] 2xl:grid-cols-[minmax(0,1fr)_360px]">
-				<section className="liquid-panel grid min-h-[720px] grid-rows-[auto_minmax(0,1fr)_auto_auto] gap-3 overflow-hidden rounded-[2rem] p-4 xl:min-h-0">
-					<header className="flex min-h-0 flex-wrap items-center justify-between gap-3">
-						<div>
-							<p className="text-sm font-bold uppercase tracking-[0.22em] text-sky-500">Teacher Control</p>
-							<h1 className="text-3xl font-black leading-tight tracking-tight text-slate-900 2xl:text-5xl">{question?.title ?? "รอเริ่มเกม"}</h1>
+			<div className="page-shell grid min-h-[calc(100vh-1.5rem)] grid-cols-1 gap-3 xl:h-full xl:min-h-0 xl:grid-cols-[minmax(0,1fr)_320px] 2xl:grid-cols-[minmax(0,1fr)_360px]">
+				<section className="liquid-panel grid min-h-[720px] grid-rows-[auto_minmax(0,1fr)_auto_auto] gap-3 overflow-hidden rounded-[2rem] p-4 xl:min-h-0 xl:p-5">
+					<header className="flex min-h-0 flex-wrap items-start justify-between gap-3">
+						<div className="space-y-3">
+							<div className="flex flex-wrap items-center gap-2">
+								<p className="text-sm font-black uppercase tracking-[0.24em] text-sky-500">Teacher Control</p>
+								<span className="glass-chip rounded-full px-3 py-1 text-xs font-bold uppercase tracking-[0.16em] text-slate-600">
+									Room {gameId}
+								</span>
+								<span className="glass-chip rounded-full px-3 py-1 text-xs font-bold uppercase tracking-[0.16em] text-slate-600">
+									12 Questions
+								</span>
+							</div>
+							<h1 className="max-w-5xl text-3xl font-extrabold leading-tight tracking-tight text-slate-900 2xl:text-5xl">{question?.title ?? "รอเริ่มเกม"}</h1>
+							<div className="flex flex-wrap items-center gap-2 text-sm font-semibold text-slate-600">
+								<span className="glass-chip rounded-full px-3 py-2">{snapshot?.message ?? "กำลังเชื่อมต่อ"}</span>
+								<span className="glass-chip rounded-full px-3 py-2">WebSocket: {status}</span>
+								<span className="glass-chip rounded-full px-3 py-2">ผู้เล่น {snapshot?.playerCount ?? 0} คน</span>
+							</div>
 						</div>
-						<div className="liquid-control rounded-3xl px-5 py-3 text-right">
-							<p className="text-sm font-bold text-slate-500">คนตอบแล้ว</p>
-							<p className="text-4xl font-black text-sky-600 2xl:text-5xl">{snapshot?.answeredCount ?? 0}</p>
-							<p className="mt-2 text-sm font-bold text-slate-500">เหลือเวลา {remainingSeconds ?? "-"} วิ</p>
+						<div className="grid min-w-[220px] grid-cols-2 gap-2 self-stretch">
+							<div className="liquid-control rounded-3xl px-4 py-4 text-right">
+								<p className="text-sm font-bold text-slate-500">คนตอบแล้ว</p>
+								<p className="text-4xl font-black text-sky-600 2xl:text-5xl">{snapshot?.answeredCount ?? 0}</p>
+							</div>
+							<div className="liquid-control rounded-3xl px-4 py-4 text-right">
+								<p className="text-sm font-bold text-slate-500">เวลา</p>
+								<p className={`text-4xl font-black 2xl:text-5xl ${countdownToneClass}`}>{remainingSeconds ?? "-"}</p>
+								<p className="text-xs font-bold uppercase tracking-[0.16em] text-slate-500">seconds</p>
+							</div>
 						</div>
 					</header>
 
@@ -99,9 +132,9 @@ export function HostGame({ gameId, hostKey }: HostGameProps) {
 						{question?.choices.map((choice) => (
 							<div
 								key={choice.id}
-								className={`liquid-button rounded-3xl border px-5 py-3 text-xl font-black 2xl:text-3xl ${choiceStyles[choice.id].panelClassName}`}
+								className={`liquid-button rounded-3xl border px-4 py-4 text-lg font-black sm:px-5 xl:text-2xl 2xl:text-3xl ${choiceStyles[choice.id].panelClassName}`}
 							>
-								<span className="mr-3 inline-flex h-10 w-10 items-center justify-center rounded-full bg-white/20 text-center text-lg">{choice.id}</span>
+								<span className="mr-3 inline-flex h-10 w-10 items-center justify-center rounded-full bg-white/30 text-center text-lg">{choice.id}</span>
 								{choice.text}
 							</div>
 						))}
@@ -112,14 +145,17 @@ export function HostGame({ gameId, hostKey }: HostGameProps) {
 
 				<aside className="liquid-panel relative flex min-h-0 flex-col gap-3 overflow-y-auto rounded-[2rem] p-4 text-slate-900">
 					<div className="shrink-0">
-						<p className="text-sm font-bold text-slate-500">สถานะ</p>
-						<p className="text-xl font-black 2xl:text-2xl">{snapshot?.message ?? "กำลังเชื่อมต่อ"}</p>
-						<p className="mt-1 text-sm text-slate-500">WebSocket: {status}</p>
+						<p className="text-sm font-bold uppercase tracking-[0.18em] text-slate-500">Session</p>
+						<p className="mt-1 text-2xl font-extrabold">ควบคุมเกมสด</p>
+						<p className="mt-1 text-sm text-slate-500">ใช้หน้าจอนี้สำหรับเปิดคำถาม ปิดรับคำตอบ และเฉลย</p>
 						{errorMessage ? <p className="mt-2 rounded-md bg-red-50 p-3 text-sm font-semibold text-danger">{errorMessage}</p> : null}
 					</div>
 
 					<div className="liquid-control shrink-0 rounded-3xl p-3">
-						<p className="text-sm font-bold text-slate-500">ให้ผู้เล่นเข้าเกม</p>
+						<div className="flex items-center justify-between gap-2">
+							<p className="text-sm font-bold text-slate-500">ให้ผู้เล่นเข้าเกม</p>
+							<span className="rounded-full bg-white/60 px-2 py-1 text-xs font-bold text-slate-600">Student Play</span>
+						</div>
 						<div className="my-3 rounded-3xl border border-dashed border-white/60 bg-white/35 p-4">
 							<p className="text-base font-black text-slate-700">เปิดลิงก์นี้บนมือถือหรือแท็บเล็ต</p>
 							<p className="mt-1 text-sm font-semibold leading-6 text-slate-500">สแกน QR หรือคัดลอกลิงก์ด้านล่างได้เลย</p>
@@ -134,7 +170,7 @@ export function HostGame({ gameId, hostKey }: HostGameProps) {
 							</div>
 							<div className="mt-3 rounded-2xl bg-white/60 px-3 py-2 text-sm font-semibold text-slate-800">{joinUrl}</div>
 							<button
-								className="mt-3 min-h-11 cursor-pointer rounded-2xl border border-sky-200/70 bg-sky-100 px-4 py-2 text-sm font-black text-sky-900 transition hover:bg-sky-200"
+								className="action-button mt-3 w-full border border-sky-200/70 bg-sky-100 px-4 py-3 text-sm font-black text-sky-900 hover:bg-sky-200"
 								type="button"
 								onClick={copyJoinUrl}
 							>
@@ -149,25 +185,54 @@ export function HostGame({ gameId, hostKey }: HostGameProps) {
 						<div className="liquid-control mt-2 rounded-3xl px-4 py-3 text-sm font-black text-slate-800">สัตว์เท่านั้น</div>
 					</div>
 
-					<div className="grid shrink-0 grid-cols-2 gap-2">
-						<button className="liquid-button min-h-12 cursor-pointer rounded-2xl border border-sky-200/80 bg-sky-200/80 px-3 py-3 font-black text-sky-950 transition hover:bg-sky-300/80" type="button" onClick={() => sendHostAction("start-question")}>
-							Start
-						</button>
-						<button className="liquid-control min-h-12 cursor-pointer rounded-2xl px-3 py-3 font-black transition hover:bg-white/55" type="button" onClick={() => sendHostAction("close-answers")}>
-							Close
-						</button>
-						<button className="liquid-control min-h-12 cursor-pointer rounded-2xl px-3 py-3 font-black transition hover:bg-white/55" type="button" onClick={() => sendHostAction("show-result")}>
-							Result
-						</button>
-						<button className="liquid-button min-h-12 cursor-pointer rounded-2xl border border-emerald-200/80 bg-emerald-200/80 px-3 py-3 font-black text-emerald-950 transition hover:bg-emerald-300/80" type="button" onClick={() => sendHostAction("reveal-answer")}>
-							Reveal
-						</button>
-						<button className="liquid-button min-h-12 cursor-pointer rounded-2xl border border-indigo-200/80 bg-indigo-200/80 px-3 py-3 font-black text-indigo-950 transition hover:bg-indigo-300/80" type="button" onClick={() => sendHostAction("next-question")}>
-							Next
-						</button>
-						<button className="liquid-button min-h-12 cursor-pointer rounded-2xl border border-rose-200/80 bg-rose-200/80 px-3 py-3 font-black text-rose-950 transition hover:bg-rose-300/80" type="button" onClick={() => sendHostAction("reset-game")}>
-							Reset
-						</button>
+					<div className="liquid-control shrink-0 rounded-3xl p-3">
+						<div className="mb-3 flex items-center justify-between gap-2">
+							<p className="text-sm font-bold text-slate-500">สถานะคำถาม</p>
+							<span className={`rounded-full px-3 py-1 text-xs font-bold ${isAcceptingAnswers ? "bg-sky-100 text-sky-700" : "bg-white/70 text-slate-600"}`}>
+								{isAcceptingAnswers ? "LIVE" : "IDLE"}
+							</span>
+						</div>
+						<div className="h-3 overflow-hidden rounded-full bg-white/55">
+							<div
+								className={`h-full transition-[width] duration-300 ease-linear ${remainingSeconds != null && remainingSeconds <= 5 ? "countdown-bar-danger" : "countdown-bar"}`}
+								style={{
+									width:
+										snapshot?.questionDurationMs && remainingSeconds != null
+											? `${Math.max(0, (remainingSeconds / (snapshot.questionDurationMs / 1000)) * 100)}%`
+											: "0%",
+								}}
+							/>
+						</div>
+						<p className="mt-2 text-sm font-semibold text-slate-500">รอบละ 15 วินาที และผู้เล่นตอบได้เพียง 1 ครั้ง</p>
+					</div>
+
+					<div className="liquid-control shrink-0 rounded-3xl p-3">
+						<div className="mb-3 flex items-center justify-between gap-2">
+							<p className="text-sm font-bold text-slate-500">ควบคุมเกม</p>
+							{recommendedAction ? (
+								<span className="rounded-full bg-white/65 px-3 py-1 text-xs font-bold uppercase tracking-[0.16em] text-slate-700">
+									Next step: {hostActions.find((action) => action.type === recommendedAction)?.label}
+								</span>
+							) : null}
+						</div>
+						<div className="grid grid-cols-2 gap-2">
+							{hostActions.map((action) => {
+								const availability = getHostActionAvailability(snapshot?.status ?? "waiting", action.type, currentQuestionNumber);
+								const isRecommended = recommendedAction === action.type;
+								return (
+									<button
+										key={action.type}
+										className={`action-button px-3 py-3 ${action.toneClassName} ${isRecommended ? "ring-2 ring-white/80" : ""}`}
+										disabled={!availability.enabled}
+										type="button"
+										onClick={() => sendHostAction(action.type)}
+									>
+										<div className="text-base font-black sm:text-lg">{action.label}</div>
+										<div className="mt-1 text-[11px] font-semibold opacity-75">{availability.helperText}</div>
+									</button>
+								);
+							})}
+						</div>
 					</div>
 
 					<div className="liquid-control shrink-0 rounded-3xl p-3 text-sm font-semibold text-slate-500">

@@ -1,5 +1,6 @@
 import { DurableObject } from "cloudflare:workers";
 import { getQuestions } from "@/data/questions";
+import { getHostActionAvailability } from "@/lib/host-action-availability";
 import { createSnapshot, getCurrentQuestion, initialGameState, type GameState } from "@/lib/game-engine";
 import { logError, logInfo, logWarn } from "@/lib/runtime-log";
 import type { ChoiceId, GameAction, HostAction, ServerMessage } from "@/types/game";
@@ -159,6 +160,11 @@ export class GameRoom extends DurableObject<GameRoomEnv> {
 	private async applyHostAction(action: HostAction): Promise<void> {
 		if (!this.state) {
 			return;
+		}
+
+		const availability = getHostActionAvailability(this.state.status, action.type, this.state.questionIndex + 1);
+		if (!availability.enabled) {
+			throw new Error("Action is not available right now");
 		}
 
 		const now = Date.now();

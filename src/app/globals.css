@@ -1,16 +1,16 @@
 @import "tailwindcss";
 
 :root {
-	--background: #eff8ff;
-	--foreground: #203047;
-	--surface: rgba(255, 255, 255, 0.68);
-	--surface-muted: rgba(226, 244, 255, 0.78);
-	--primary: #8aa7ff;
-	--primary-foreground: #172033;
-	--success: #86e7c8;
-	--warning: #ffe08a;
-	--danger: #ff9aa8;
-	--border: rgba(255, 255, 255, 0.46);
+	--background: #f6fbff;
+	--foreground: #25324a;
+	--surface: rgba(255, 255, 255, 0.74);
+	--surface-muted: rgba(239, 247, 255, 0.88);
+	--primary: #96b6ff;
+	--primary-foreground: #1a2540;
+	--success: #9ee6c8;
+	--warning: #ffdca0;
+	--danger: #ffb1bd;
+	--border: rgba(255, 255, 255, 0.56);
 }
 
 @theme inline {
@@ -29,8 +29,17 @@
 body {
 	background: var(--background);
 	color: var(--foreground);
-	font-family: Arial, "Helvetica Neue", "Noto Sans Thai", "Noto Sans", sans-serif;
+	font-family: var(--font-body), sans-serif;
 	margin: 0;
+}
+
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+	font-family: var(--font-heading), var(--font-body), sans-serif;
 }
 
 button,
@@ -38,18 +47,25 @@ a {
 	-webkit-tap-highlight-color: transparent;
 }
 
+button,
+[role="button"],
+a {
+	cursor: pointer;
+}
+
 .liquid-bg {
 	background:
-		radial-gradient(circle at 18% 12%, rgba(255, 255, 255, 0.92), transparent 24%),
-		radial-gradient(circle at 78% 18%, rgba(196, 181, 253, 0.44), transparent 24%),
-		linear-gradient(135deg, #e0f7ff 0%, #eef2ff 42%, #ffeef7 100%);
+		radial-gradient(circle at 12% 10%, rgba(255, 255, 255, 0.96), transparent 22%),
+		radial-gradient(circle at 88% 14%, rgba(255, 209, 220, 0.34), transparent 18%),
+		radial-gradient(circle at 78% 82%, rgba(189, 234, 255, 0.34), transparent 24%),
+		linear-gradient(140deg, #eef8ff 0%, #f7f3ff 48%, #fff6fb 100%);
 }
 
 .liquid-panel {
 	border: 1px solid rgba(255, 255, 255, 0.48);
-	background: rgba(255, 255, 255, 0.54);
+	background: rgba(255, 255, 255, 0.58);
 	box-shadow:
-		0 20px 70px rgba(103, 118, 161, 0.18),
+		0 22px 72px rgba(107, 126, 165, 0.16),
 		inset 0 1px 0 rgba(255, 255, 255, 0.72),
 		inset 0 -1px 0 rgba(255, 255, 255, 0.24);
 	backdrop-filter: blur(22px) saturate(150%);
@@ -57,25 +73,126 @@ a {
 
 .liquid-stage {
 	border: 1px solid rgba(255, 255, 255, 0.38);
-	background: rgba(255, 255, 255, 0.24);
+	background: linear-gradient(180deg, rgba(255, 255, 255, 0.36), rgba(255, 255, 255, 0.24));
 	box-shadow:
-		0 24px 90px rgba(45, 74, 122, 0.2),
+		0 24px 90px rgba(62, 88, 130, 0.16),
 		inset 0 1px 0 rgba(255, 255, 255, 0.7);
 	backdrop-filter: blur(18px) saturate(145%);
 }
 
 .liquid-control {
 	border: 1px solid rgba(255, 255, 255, 0.5);
-	background: rgba(255, 255, 255, 0.42);
+	background: rgba(255, 255, 255, 0.46);
 	box-shadow:
-		0 10px 30px rgba(103, 118, 161, 0.12),
+		0 10px 30px rgba(103, 118, 161, 0.1),
 		inset 0 1px 0 rgba(255, 255, 255, 0.72);
 	backdrop-filter: blur(16px) saturate(140%);
 }
 
 .liquid-button {
 	box-shadow:
-		0 12px 28px rgba(56, 80, 128, 0.14),
+		0 12px 28px rgba(84, 104, 148, 0.14),
 		inset 0 1px 0 rgba(255, 255, 255, 0.42);
 	backdrop-filter: blur(14px) saturate(135%);
+}
+
+.page-shell {
+	width: min(100%, 1760px);
+	margin-inline: auto;
+}
+
+.glass-chip {
+	border: 1px solid rgba(255, 255, 255, 0.62);
+	background: rgba(255, 255, 255, 0.56);
+	box-shadow:
+		0 8px 22px rgba(104, 123, 165, 0.1),
+		inset 0 1px 0 rgba(255, 255, 255, 0.76);
+	backdrop-filter: blur(14px) saturate(145%);
+}
+
+.countdown-bar {
+	background: linear-gradient(90deg, rgba(255, 192, 203, 0.88), rgba(157, 211, 255, 0.88));
+}
+
+.countdown-bar-danger {
+	background: linear-gradient(90deg, rgba(255, 177, 189, 0.96), rgba(255, 214, 153, 0.96));
+}
+
+.action-button {
+	min-height: 48px;
+	border-radius: 1rem;
+	font-weight: 800;
+	transition:
+		transform 180ms ease,
+		box-shadow 180ms ease,
+		background-color 180ms ease;
+}
+
+.action-button:hover {
+	transform: translateY(-1px);
+}
+
+.action-button:disabled {
+	cursor: not-allowed;
+	transform: none;
+	opacity: 0.48;
+	box-shadow:
+		0 6px 18px rgba(84, 104, 148, 0.08),
+		inset 0 1px 0 rgba(255, 255, 255, 0.3);
+}
+
+.action-button:focus-visible {
+	outline: none;
+	box-shadow:
+		0 0 0 4px rgba(255, 255, 255, 0.82),
+		0 12px 28px rgba(84, 104, 148, 0.16);
+}
+
+.stage-pop {
+	animation: stage-pop 0.42s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.stage-banner {
+	animation: stage-banner 0.9s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+@keyframes stage-pop {
+	0% {
+		transform: scale(0.992);
+	}
+	100% {
+		transform: scale(1);
+	}
+}
+
+@keyframes stage-banner {
+	0% {
+		opacity: 0;
+		transform: translateY(12px) scale(0.96);
+	}
+	18% {
+		opacity: 1;
+		transform: translateY(0) scale(1);
+	}
+	82% {
+		opacity: 1;
+		transform: translateY(0) scale(1);
+	}
+	100% {
+		opacity: 0;
+		transform: translateY(-8px) scale(0.98);
+	}
+}
+
+@media (prefers-reduced-motion: reduce) {
+	.action-button,
+	.liquid-panel,
+	.liquid-control,
+	.liquid-stage,
+	.liquid-button,
+	.stage-pop,
+	.stage-banner {
+		transition: none !important;
+		animation: none !important;
+	}
 }

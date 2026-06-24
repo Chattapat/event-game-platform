@@ -22,7 +22,7 @@ export interface Question {
 	shadowImageUrl: string;
 	realImageUrl: string;
 	choices: Choice[];
-	correctChoiceId: ChoiceId;
+	correctChoiceId: ChoiceId | null;
 	difficulty: Difficulty;
 }
 

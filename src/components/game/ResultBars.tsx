@@ -14,17 +14,17 @@ export function ResultBars({ results, showCorrectAnswer }: ResultBarsProps) {
 	return (
 		<div className="grid grid-cols-1 gap-2 md:grid-cols-2">
 			{results.map((result) => (
-				<div key={result.choiceId} className="liquid-control rounded-2xl p-3">
+				<div key={result.choiceId} className="liquid-control rounded-3xl p-4">
 					<div className="mb-2 flex items-center justify-between gap-3">
-						<div className="text-lg font-semibold">
+						<div className="text-lg font-bold">
 							{result.choiceId}. {result.text}
-							{showCorrectAnswer && result.isCorrect ? <span className="ml-3 text-emerald-600">คำตอบถูก</span> : null}
+							{showCorrectAnswer && result.isCorrect ? <span className="ml-3 rounded-full bg-emerald-100 px-2 py-1 text-sm text-emerald-700">คำตอบถูก</span> : null}
 						</div>
-						<div className="text-xl font-bold">{result.percentage}%</div>
+						<div className="text-2xl font-black">{result.percentage}%</div>
 					</div>
 					<div className="h-3 overflow-hidden rounded-full bg-white/55">
 						<div
-							className={showCorrectAnswer && result.isCorrect ? "h-full bg-emerald-500" : `h-full ${choiceStyles[result.choiceId].barClassName}`}
+							className={`h-full transition-[width] duration-500 ease-out ${showCorrectAnswer && result.isCorrect ? "bg-emerald-500" : choiceStyles[result.choiceId].barClassName}`}
 							style={{ width: `${result.percentage}%` }}
 						/>
 					</div>
