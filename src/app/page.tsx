@@ -10,7 +10,7 @@ export default function HomePage() {
           <p className="text-sm font-semibold uppercase tracking-[0.18em] text-primary">
             Event Game
           </p>
-          <h1 className="max-w-3xl text-5xl font-bold leading-tight sm:text-6xl">
+          <h1 className="max-w-3xl text-balance text-4xl font-bold leading-tight sm:text-5xl lg:text-6xl">
             Shadow Guessing Game
           </h1>
           <p className="max-w-2xl text-xl leading-8 text-slate-600">

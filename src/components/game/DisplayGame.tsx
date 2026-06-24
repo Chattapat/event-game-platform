@@ -181,8 +181,8 @@ export function DisplayGame({ gameId }: DisplayGameProps) {
 				)}
 			</header>
 
-			<div className="min-h-[18rem] flex-1">
-				<GameVisual question={question} isRevealed={isRevealed} />
+			<div className="flex min-h-[18rem] flex-1 items-center justify-center">
+				<GameVisual question={question} isRevealed={isRevealed} displayFill />
 			</div>
 
 			<div className="grid grid-cols-1 gap-3 md:grid-cols-2">

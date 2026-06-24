@@ -7,10 +7,12 @@ interface GameVisualProps {
 	question: Question | null;
 	isRevealed: boolean;
 	isFullscreen?: boolean;
+	/** Scales the artwork to fill big projector/TV screens (bounded by viewport). Used by the display surface. */
+	displayFill?: boolean;
 	onOpenFullscreen?: () => void;
 }
 
-export function GameVisual({ question, isRevealed, isFullscreen = false, onOpenFullscreen }: GameVisualProps) {
+export function GameVisual({ question, isRevealed, isFullscreen = false, displayFill = false, onOpenFullscreen }: GameVisualProps) {
 	const [transitionLabel, setTransitionLabel] = useState<"reveal" | "next" | null>(null);
 	const previousQuestionIdRef = useRef<string | null>(question?.id ?? null);
 	const previousRevealedRef = useRef(isRevealed);
@@ -66,7 +68,7 @@ export function GameVisual({ question, isRevealed, isFullscreen = false, onOpenF
 					ดูเต็มจอ
 				</button>
 			) : null}
-			<QuestionArtwork key={question.id} question={question} isFullscreen={isFullscreen} isRevealed={isRevealed} />
+			<QuestionArtwork key={question.id} question={question} isFullscreen={isFullscreen} displayFill={displayFill} isRevealed={isRevealed} />
 			{transitionLabel ? (
 				<div className="pointer-events-none absolute inset-0 flex items-center justify-center">
 					<div className="glass-chip stage-banner rounded-full px-5 py-3 text-lg font-black text-slate-700">
@@ -81,15 +83,18 @@ export function GameVisual({ question, isRevealed, isFullscreen = false, onOpenF
 interface QuestionArtworkProps {
 	question: Question;
 	isFullscreen: boolean;
+	displayFill: boolean;
 	isRevealed: boolean;
 }
 
-function QuestionArtwork({ question, isFullscreen, isRevealed }: QuestionArtworkProps) {
+function QuestionArtwork({ question, isFullscreen, displayFill, isRevealed }: QuestionArtworkProps) {
 	const [shadowFailed, setShadowFailed] = useState(false);
 	const [realFailed, setRealFailed] = useState(false);
 	const artworkSizeClass = isFullscreen
 		? "h-[min(82vh,82vw)] w-[min(82vh,82vw)] max-h-[calc(100vh-8rem)] max-w-[calc(100vw-4rem)]"
-		: "h-[min(78vw,18rem)] w-[min(78vw,18rem)] sm:h-80 sm:w-80 xl:h-[26rem] xl:w-[26rem] 2xl:h-[30rem] 2xl:w-[30rem]";
+		: displayFill
+			? "h-[min(64vh,80vw)] w-[min(64vh,80vw)] max-h-full"
+			: "h-[min(78vw,18rem)] w-[min(78vw,18rem)] sm:h-80 sm:w-80 xl:h-[26rem] xl:w-[26rem] 2xl:h-[30rem] 2xl:w-[30rem]";
 	const imagePaddingClass = isFullscreen ? "p-2 sm:p-4" : "p-4";
 
 	return (

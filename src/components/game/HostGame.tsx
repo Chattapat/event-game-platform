@@ -184,9 +184,9 @@ export function HostGame({ gameId, hostKey }: HostGameProps) {
   ];
 
   return (
-    <main className="liquid-bg min-h-screen overflow-x-hidden p-3 text-slate-900 xl:h-screen xl:overflow-hidden">
-      <div className="page-shell grid min-h-[calc(100vh-1.5rem)] grid-cols-1 gap-3 xl:h-full xl:min-h-0 xl:grid-cols-[minmax(0,1fr)_320px] 2xl:grid-cols-[minmax(0,1fr)_360px]">
-        <section className="liquid-panel grid min-h-[720px] grid-rows-[auto_minmax(0,1fr)_auto] gap-3 overflow-hidden rounded-[2rem] p-4 xl:min-h-0 xl:p-5">
+    <main className="liquid-bg min-h-screen overflow-x-hidden p-3 text-slate-900 lg:h-screen lg:overflow-hidden">
+      <div className="page-shell grid min-h-[calc(100vh-1.5rem)] grid-cols-1 gap-3 lg:h-full lg:min-h-0 lg:grid-cols-[minmax(0,1fr)_320px] 2xl:grid-cols-[minmax(0,1fr)_360px]">
+        <section className="liquid-panel grid min-h-[720px] grid-rows-[auto_minmax(0,1fr)_auto] gap-3 overflow-hidden rounded-[2rem] p-4 lg:min-h-0 lg:p-5">
           <header className="flex min-h-0 flex-wrap items-start justify-between gap-3">
             <div className="space-y-3">
               <div className="flex flex-wrap items-center gap-2">
