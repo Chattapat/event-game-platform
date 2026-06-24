@@ -330,7 +330,7 @@ export function HostGame({ gameId, hostKey }: HostGameProps) {
                   </div>
                 )}
               </div>
-              <div className="mt-3 rounded-2xl bg-white/60 px-3 py-2 text-sm font-semibold text-slate-800">
+              <div className="mt-3 break-all rounded-2xl bg-white/60 px-3 py-2 text-center text-sm font-semibold text-slate-800">
                 {joinUrl}
               </div>
               <button
