@@ -87,7 +87,7 @@ export class GameRoom extends DurableObject<GameRoomEnv> {
 
 		server.accept();
 		this.clients.set(server, { role, playerId, canControl });
-		this.sendSnapshot(server);
+		this.safeSendSnapshot(server);
 
 		server.addEventListener("message", (event) => {
 			this.handleSocketMessage(server, event.data).catch((error: unknown) => {
@@ -96,13 +96,11 @@ export class GameRoom extends DurableObject<GameRoomEnv> {
 		});
 
 		server.addEventListener("close", () => {
-			this.clients.delete(server);
-			this.broadcast();
+			this.removeClient(server);
 		});
 
 		server.addEventListener("error", () => {
-			this.clients.delete(server);
-			this.broadcast();
+			this.removeClient(server);
 		});
 
 		this.broadcast();
@@ -189,11 +187,6 @@ export class GameRoom extends DurableObject<GameRoomEnv> {
 				this.state.questionEndsAtMs = now;
 				await this.ctx.storage.deleteAlarm();
 				logInfo("game_room.close_answers", { gameId: this.state.gameId, status: this.state.status });
-				break;
-			case "show-result":
-				this.state.status = "showing-result";
-				await this.ctx.storage.deleteAlarm();
-				logInfo("game_room.show_result", { gameId: this.state.gameId, status: this.state.status });
 				break;
 			case "reveal-answer":
 				this.state.status = "revealed";
@@ -299,17 +292,29 @@ export class GameRoom extends DurableObject<GameRoomEnv> {
 
 	private broadcast(): void {
 		for (const socket of this.clients.keys()) {
-			this.sendSnapshot(socket);
+			if (!this.safeSendSnapshot(socket)) {
+				this.removeClient(socket);
+			}
 		}
 	}
 
-	private sendSnapshot(socket: WebSocket): void {
+	private safeSendSnapshot(socket: WebSocket): boolean {
 		const meta = this.clients.get(socket);
 		const message: ServerMessage = {
 			type: "snapshot",
 			snapshot: this.getSnapshot(meta?.playerId ?? null),
 		};
-		socket.send(JSON.stringify(message));
+
+		try {
+			socket.send(JSON.stringify(message));
+			return true;
+		} catch (error) {
+			logError("game_room.socket_send_failed", {
+				gameId: this.state?.gameId ?? "unknown",
+				message: error instanceof Error ? error.message : "Failed to send snapshot",
+			});
+			return false;
+		}
 	}
 
 	private sendError(socket: WebSocket, message: string): void {
@@ -318,7 +323,16 @@ export class GameRoom extends DurableObject<GameRoomEnv> {
 			type: "error",
 			message,
 		};
-		socket.send(JSON.stringify(errorMessage));
+		try {
+			socket.send(JSON.stringify(errorMessage));
+		} catch {
+			this.removeClient(socket);
+		}
+	}
+
+	private removeClient(socket: WebSocket): void {
+		this.clients.delete(socket);
+		this.broadcast();
 	}
 
 	private getSnapshot(playerId: string | null = null) {

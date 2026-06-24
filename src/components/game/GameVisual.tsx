@@ -6,10 +6,11 @@ import type { Question } from "@/types/game";
 interface GameVisualProps {
 	question: Question | null;
 	isRevealed: boolean;
-	statusLabel?: string;
+	isFullscreen?: boolean;
+	onOpenFullscreen?: () => void;
 }
 
-export function GameVisual({ question, isRevealed, statusLabel }: GameVisualProps) {
+export function GameVisual({ question, isRevealed, isFullscreen = false, onOpenFullscreen }: GameVisualProps) {
 	const [transitionLabel, setTransitionLabel] = useState<"reveal" | "next" | null>(null);
 	const previousQuestionIdRef = useRef<string | null>(question?.id ?? null);
 	const previousRevealedRef = useRef(isRevealed);
@@ -55,12 +56,17 @@ export function GameVisual({ question, isRevealed, statusLabel }: GameVisualProp
 			<div className="absolute inset-0 bg-[radial-gradient(circle_at_center,_rgba(255,255,255,0.74),_rgba(228,240,255,0.30)_60%,_rgba(255,255,255,0.12)_100%)]" />
 			<div className="absolute inset-x-8 top-0 h-36 rounded-full bg-white/55 blur-3xl" />
 			<div className="absolute bottom-0 h-1/3 w-full bg-[radial-gradient(ellipse_at_center,_rgba(255,255,255,0.52),_transparent_65%)]" />
-			{statusLabel ? (
-				<div className="glass-chip absolute left-5 top-5 rounded-full px-4 py-2 text-sm font-bold text-slate-700">
-					{statusLabel}
-				</div>
+			{onOpenFullscreen ? (
+				<button
+					aria-label="ดูภาพเต็มจอ"
+					className="glass-chip absolute right-5 top-5 z-10 min-h-11 rounded-full px-4 py-2 text-sm font-black text-slate-700 transition hover:bg-white/70 focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-white/80"
+					type="button"
+					onClick={onOpenFullscreen}
+				>
+					ดูเต็มจอ
+				</button>
 			) : null}
-			<QuestionArtwork key={question.id} question={question} isRevealed={isRevealed} />
+			<QuestionArtwork key={question.id} question={question} isFullscreen={isFullscreen} isRevealed={isRevealed} />
 			{transitionLabel ? (
 				<div className="pointer-events-none absolute inset-0 flex items-center justify-center">
 					<div className="glass-chip stage-banner rounded-full px-5 py-3 text-lg font-black text-slate-700">
@@ -68,24 +74,26 @@ export function GameVisual({ question, isRevealed, statusLabel }: GameVisualProp
 					</div>
 				</div>
 			) : null}
-			<div className="glass-chip absolute bottom-4 left-4 rounded-full px-4 py-2 text-sm font-bold text-slate-700 transition-all duration-700 ease-out">
-				{isRevealed ? "เฉลย" : "ภาพเงา"}
-			</div>
 		</div>
 	);
 }
 
 interface QuestionArtworkProps {
 	question: Question;
+	isFullscreen: boolean;
 	isRevealed: boolean;
 }
 
-function QuestionArtwork({ question, isRevealed }: QuestionArtworkProps) {
+function QuestionArtwork({ question, isFullscreen, isRevealed }: QuestionArtworkProps) {
 	const [shadowFailed, setShadowFailed] = useState(false);
 	const [realFailed, setRealFailed] = useState(false);
+	const artworkSizeClass = isFullscreen
+		? "h-[min(82vh,82vw)] w-[min(82vh,82vw)] max-h-[calc(100vh-8rem)] max-w-[calc(100vw-4rem)]"
+		: "h-[min(78vw,18rem)] w-[min(78vw,18rem)] sm:h-80 sm:w-80 xl:h-[26rem] xl:w-[26rem] 2xl:h-[30rem] 2xl:w-[30rem]";
+	const imagePaddingClass = isFullscreen ? "p-2 sm:p-4" : "p-4";
 
 	return (
-		<div className="relative flex h-[min(78vw,18rem)] w-[min(78vw,18rem)] items-center justify-center sm:h-80 sm:w-80 xl:h-[26rem] xl:w-[26rem] 2xl:h-[30rem] 2xl:w-[30rem]">
+		<div className={`relative flex items-center justify-center ${artworkSizeClass}`}>
 			<div
 				className={`liquid-panel absolute inset-0 rounded-[2.25rem] border border-white/40 bg-white/55 shadow-2xl shadow-slate-500/15 transition-all duration-700 ease-out motion-safe:transition-all ${
 					isRevealed ? "scale-100 opacity-100" : "scale-[0.985] opacity-100"
@@ -95,7 +103,7 @@ function QuestionArtwork({ question, isRevealed }: QuestionArtworkProps) {
 				<Image
 					alt=""
 					aria-hidden="true"
-					className={`absolute inset-0 h-full w-full object-contain p-4 transition-all duration-700 ease-out motion-safe:transition-all ${
+					className={`absolute inset-0 h-full w-full object-contain ${imagePaddingClass} transition-all duration-700 ease-out motion-safe:transition-all ${
 						isRevealed ? "scale-95 opacity-0 blur-sm" : "scale-100 opacity-100"
 					}`}
 					fill
@@ -116,7 +124,7 @@ function QuestionArtwork({ question, isRevealed }: QuestionArtworkProps) {
 			{!realFailed ? (
 				<Image
 					alt={question.answerText}
-					className={`absolute inset-0 h-full w-full object-contain p-4 transition-all duration-700 ease-out motion-safe:transition-all ${
+					className={`absolute inset-0 h-full w-full object-contain ${imagePaddingClass} transition-all duration-700 ease-out motion-safe:transition-all ${
 						isRevealed ? "scale-100 opacity-100" : "scale-[0.98] opacity-0 blur-sm"
 					}`}
 					fill

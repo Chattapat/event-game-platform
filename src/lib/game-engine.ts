@@ -87,7 +87,7 @@ export function createSnapshot(state: GameState, playerCount: number, playerId: 
 		answeredCount: getAnsweredCount(state),
 		playerCount,
 		hasAnswered: hasPlayerAnswered(state, playerId),
-		results: state.status === "showing-result" || state.status === "revealed" ? getChoiceResults(state) : [],
+		results: state.status === "revealed" ? getChoiceResults(state) : [],
 		message: getStatusMessage(state.status),
 	};
 }
@@ -100,8 +100,6 @@ function getStatusMessage(status: GameStatus): string {
 			return "เปิดรับคำตอบ";
 		case "closed-answers":
 			return "ปิดรับคำตอบแล้ว";
-		case "showing-result":
-			return "แสดงผลโหวต";
 		case "revealed":
 			return "เฉลยคำตอบ";
 		case "finished":

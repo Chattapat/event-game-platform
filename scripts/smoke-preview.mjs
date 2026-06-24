@@ -116,7 +116,14 @@ await Promise.all([waitForOpen(teacher.socket), waitForOpen(student.socket)]);
 
 const initialStudentSnapshot = await student.nextMessage((message) => message?.type === "snapshot");
 assert(initialStudentSnapshot.snapshot?.status, "Student snapshot missing");
-await teacher.nextMessage((message) => message?.type === "snapshot");
+const initialTeacherSnapshot = await teacher.nextMessage((message) => message?.type === "snapshot");
+
+if (initialTeacherSnapshot.snapshot?.status !== "waiting") {
+	await postAction({ type: "reset-game" });
+	const waitingSnapshot = await teacher.nextMessage((message) => message?.snapshot?.status === "waiting");
+	assert(waitingSnapshot.snapshot?.status === "waiting", "Game did not reset to waiting");
+	await student.nextMessage((message) => message?.snapshot?.status === "waiting");
+}
 
 await postAction({ type: "start-question" });
 const acceptingSnapshot = await student.nextMessage((message) => message?.snapshot?.status === "accepting-answers");

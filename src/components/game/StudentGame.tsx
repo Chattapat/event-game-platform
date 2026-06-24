@@ -1,5 +1,6 @@
 "use client";
 
+import { useRouter } from "next/navigation";
 import { useEffect, useRef } from "react";
 
 import { useGameSocket } from "@/components/game/use-game-socket";
@@ -12,6 +13,7 @@ interface StudentGameProps {
 }
 
 export function StudentGame({ gameId }: StudentGameProps) {
+	const router = useRouter();
 	const { status, snapshot, errorMessage, playerId, sendAction } = useGameSocket({ gameId, role: "student" });
 	const question = snapshot?.currentQuestion ?? null;
 	const canAnswer = Boolean(question && snapshot?.status === "accepting-answers" && !snapshot.hasAnswered && playerId);
@@ -56,20 +58,31 @@ export function StudentGame({ gameId }: StudentGameProps) {
 			audioContext.close().catch(() => {});
 		};
 	}, [remainingSeconds, snapshot?.status]);
+
+	useEffect(() => {
+		if (snapshot?.status !== "finished") {
+			return;
+		}
+
+		const timeoutId = window.setTimeout(() => {
+			router.push(`/play/${gameId}/finished`);
+		}, 3500);
+
+		return () => window.clearTimeout(timeoutId);
+	}, [gameId, router, snapshot?.status]);
 	const totalQuestionSeconds = Math.max(1, Math.round((snapshot?.questionDurationMs ?? 15_000) / 1000));
 	const countdownProgress = remainingSeconds == null ? 0 : Math.max(0, (remainingSeconds / totalQuestionSeconds) * 100);
+	const isAnswerRevealed = snapshot?.status === "revealed";
 	const statusText =
 		snapshot?.status === "accepting-answers"
 			? "เปิดรับคำตอบ"
 			: snapshot?.status === "closed-answers"
 				? "ปิดรับคำตอบ"
-				: snapshot?.status === "showing-result"
-					? "กำลังสรุปผล"
-					: snapshot?.status === "revealed"
-						? "เฉลยแล้ว"
-						: snapshot?.status === "finished"
-							? "จบเกมแล้ว"
-							: "รอคำถาม";
+				: snapshot?.status === "revealed"
+					? "เฉลยแล้ว"
+					: snapshot?.status === "finished"
+						? "จบเกมแล้ว"
+						: "รอคำถาม";
 
 	const submitAnswer = (choiceId: ChoiceId) => {
 		if (!playerId) {
@@ -77,6 +90,26 @@ export function StudentGame({ gameId }: StudentGameProps) {
 		}
 
 		sendAction({ type: "submit-answer", playerId, choiceId });
+	};
+
+	const getChoiceButtonClassName = (choiceId: ChoiceId): string => {
+		if (isAnswerRevealed && selectedChoiceId !== choiceId) {
+			return "border-slate-200/80 bg-slate-100 text-slate-500 shadow-[0_8px_20px_rgba(100,116,139,0.08)]";
+		}
+
+		if (selectedChoiceId !== choiceId) {
+			return `${choiceStyles[choiceId].buttonClassName} shadow-[0_10px_28px_rgba(56,80,128,0.14)]`;
+		}
+
+		if (isAnswerRevealed && question?.correctChoiceId === choiceId) {
+			return "scale-[1.03] border-emerald-200/90 bg-emerald-100 text-emerald-950 ring-4 ring-emerald-200/80 shadow-[0_16px_36px_rgba(16,185,129,0.18)]";
+		}
+
+		if (isAnswerRevealed) {
+			return "scale-[1.03] border-rose-200/90 bg-rose-100 text-rose-950 ring-4 ring-rose-200/80 shadow-[0_16px_36px_rgba(244,63,94,0.18)]";
+		}
+
+		return `${choiceStyles[choiceId].buttonClassName} scale-[1.03] ring-4 ring-white/80 shadow-[0_16px_36px_rgba(56,80,128,0.22)]`;
 	};
 
 	return (
@@ -110,23 +143,21 @@ export function StudentGame({ gameId }: StudentGameProps) {
 				<div className="liquid-panel flex-1 rounded-[2rem] p-4">
 					{question ? (
 						<div className="grid gap-3">
-							{question.choices.map((choice) => (
-								<button
-									key={choice.id}
-									className={`action-button liquid-button min-h-20 rounded-3xl border px-4 py-4 text-left text-xl font-black focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-white/80 disabled:cursor-not-allowed disabled:grayscale disabled:opacity-55 sm:px-5 sm:text-2xl ${
-										selectedChoiceId === choice.id
-											? "scale-[1.03] ring-4 ring-white/80 shadow-[0_16px_36px_rgba(56,80,128,0.22)]"
-											: "shadow-[0_10px_28px_rgba(56,80,128,0.14)]"
-									} ${choiceStyles[choice.id].buttonClassName}`}
-									type="button"
-									disabled={!canAnswer}
-									onClick={() => submitAnswer(choice.id)}
-								>
-									<span className="mr-3 inline-flex h-10 w-10 items-center justify-center rounded-full bg-white/30 text-center text-lg sm:mr-4 sm:h-11 sm:w-11 sm:text-xl">{choice.id}</span>
-									<span className="flex-1">{choice.text}</span>
-									{selectedChoiceId === choice.id ? <span className="ml-3 rounded-full bg-white/40 px-3 py-1 text-xs font-black uppercase tracking-[0.18em]">เลือกแล้ว</span> : null}
-								</button>
-							))}
+							{question.choices.map((choice) => {
+								return (
+									<button
+										key={choice.id}
+										className={`action-button liquid-button min-h-20 rounded-3xl border px-4 py-4 text-left text-xl font-black focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-white/80 disabled:cursor-not-allowed sm:px-5 sm:text-2xl ${getChoiceButtonClassName(choice.id)}`}
+										type="button"
+										disabled={!canAnswer}
+										onClick={() => submitAnswer(choice.id)}
+									>
+										<span className="mr-3 inline-flex h-10 w-10 items-center justify-center rounded-full bg-white/30 text-center text-lg sm:mr-4 sm:h-11 sm:w-11 sm:text-xl">{choice.id}</span>
+										<span className="flex-1">{choice.text}</span>
+										{selectedChoiceId === choice.id ? <span className="ml-3 rounded-full bg-white/40 px-3 py-1 text-xs font-black uppercase tracking-[0.18em]">เลือกแล้ว</span> : null}
+									</button>
+								);
+							})}
 						</div>
 					) : (
 						<div className="flex min-h-80 items-center justify-center text-center">

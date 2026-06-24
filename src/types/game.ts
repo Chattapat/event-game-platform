@@ -6,7 +6,6 @@ export type GameStatus =
 	| "waiting"
 	| "accepting-answers"
 	| "closed-answers"
-	| "showing-result"
 	| "revealed"
 	| "finished";
 
@@ -60,7 +59,6 @@ export interface ServerMessage {
 export type HostActionType =
 	| "start-question"
 	| "close-answers"
-	| "show-result"
 	| "reveal-answer"
 	| "next-question"
 	| "reset-game";

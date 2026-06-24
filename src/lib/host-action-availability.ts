@@ -21,15 +21,10 @@ export function getHostActionAvailability(
 				enabled: status === "accepting-answers",
 				helperText: "ปิดรับคำตอบก่อนหมดเวลาได้",
 			};
-		case "show-result":
-			return {
-				enabled: status === "closed-answers",
-				helperText: "แสดงผลรวมของแต่ละตัวเลือก",
-			};
 		case "reveal-answer":
 			return {
-				enabled: status === "closed-answers" || status === "showing-result",
-				helperText: "เฉลยภาพจริงหลังปิดรับคำตอบ",
+				enabled: status === "closed-answers",
+				helperText: "เฉลยภาพจริงและแสดงผลโหวต",
 			};
 		case "next-question":
 			return {
@@ -51,8 +46,6 @@ export function getRecommendedHostAction(status: GameStatus): HostActionType | n
 		case "accepting-answers":
 			return "close-answers";
 		case "closed-answers":
-			return "show-result";
-		case "showing-result":
 			return "reveal-answer";
 		case "revealed":
 			return "next-question";

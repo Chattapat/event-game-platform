@@ -87,7 +87,7 @@ MVP uses a simple host key to stop students from opening the host page and contr
 Default local key:
 
 ```txt
-teacher-demo
+24681357
 ```
 
 Teacher Control URL:
