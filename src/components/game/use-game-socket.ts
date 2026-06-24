@@ -7,7 +7,7 @@ type ConnectionStatus = "connecting" | "connected" | "disconnected";
 
 interface UseGameSocketOptions {
 	gameId: string;
-	role: "host" | "student";
+	role: "host" | "student" | "display";
 	hostKey?: string;
 }
 

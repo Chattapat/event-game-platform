@@ -8,7 +8,7 @@ import type { ChoiceId, GameAction, HostAction, ServerMessage } from "@/types/ga
 const QUESTION_DURATION_MS = 15_000;
 
 interface ClientMeta {
-	role: "host" | "student";
+	role: "host" | "student" | "display";
 	playerId: string | null;
 	canControl: boolean;
 }
@@ -79,7 +79,10 @@ export class GameRoom extends DurableObject<GameRoomEnv> {
 		}
 
 		const url = new URL(request.url);
-		const role = url.searchParams.get("role") === "host" ? "host" : "student";
+		const roleParam = url.searchParams.get("role");
+		// "display" is a read-only spectator (big screen): receives snapshots but is
+		// never counted as a player (see getStudentCount) and can never control.
+		const role = roleParam === "host" ? "host" : roleParam === "display" ? "display" : "student";
 		const playerId = url.searchParams.get("playerId");
 		const canControl = role === "host" && url.searchParams.get("key") === this.env.HOST_KEY;
 		const pair = new WebSocketPair();

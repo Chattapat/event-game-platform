@@ -341,9 +341,6 @@ export function HostGame({ gameId, hostKey }: HostGameProps) {
                 {copyStatus === "copied" ? "คัดลอกแล้ว" : "คัดลอก URL"}
               </button>
             </div>
-            <p className="text-sm font-semibold text-slate-500">
-              ผู้เล่นที่เชื่อมต่อ: {snapshot?.playerCount ?? 0}
-            </p>
           </div>
 
           <div className="liquid-control shrink-0 rounded-3xl p-3">
