@@ -3,24 +3,43 @@
 import { useRouter } from "next/navigation";
 import { FormEvent, useState } from "react";
 
-const teacherAccessCode = "24681357";
-const teacherControlUrl = "/teacher/hall?key=teacher-demo";
+const teacherGameId = "hall";
 
 export function TeacherAccessForm() {
 	const router = useRouter();
 	const [accessCode, setAccessCode] = useState("");
 	const [errorMessage, setErrorMessage] = useState<string | null>(null);
+	const [isSubmitting, setIsSubmitting] = useState(false);
 
-	const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
+	const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
 		event.preventDefault();
-
-		if (accessCode.trim() !== teacherAccessCode) {
-			setErrorMessage("รหัสไม่ถูกต้อง");
+		if (isSubmitting) {
 			return;
 		}
 
+		setIsSubmitting(true);
 		setErrorMessage(null);
-		router.push(teacherControlUrl);
+
+		try {
+			const response = await fetch("/api/teacher-access", {
+				method: "POST",
+				headers: { "Content-Type": "application/json" },
+				body: JSON.stringify({ code: accessCode.trim() }),
+			});
+
+			const data = (await response.json().catch(() => null)) as { key?: string; error?: string } | null;
+
+			if (!response.ok || !data?.key) {
+				setErrorMessage(data?.error ?? "เข้าสู่ Teacher Control ไม่สำเร็จ");
+				return;
+			}
+
+			router.push(`/teacher/${teacherGameId}?key=${encodeURIComponent(data.key)}`);
+		} catch {
+			setErrorMessage("เชื่อมต่อไม่สำเร็จ กรุณาลองใหม่อีกครั้ง");
+		} finally {
+			setIsSubmitting(false);
+		}
 	};
 
 	return (
@@ -47,10 +66,11 @@ export function TeacherAccessForm() {
 				{errorMessage ? <p className="mt-2 text-sm font-bold text-rose-600">{errorMessage}</p> : null}
 			</div>
 			<button
-				className="action-button liquid-button min-h-12 rounded-2xl border border-sky-200/80 bg-sky-200/80 px-6 py-3 text-base font-black text-sky-950 hover:bg-sky-300/80 sm:mt-7"
+				className="action-button liquid-button min-h-12 rounded-2xl border border-sky-200/80 bg-sky-200/80 px-6 py-3 text-base font-black text-sky-950 hover:bg-sky-300/80 disabled:cursor-not-allowed disabled:opacity-60 sm:mt-7"
+				disabled={isSubmitting}
 				type="submit"
 			>
-				เข้า Teacher Control
+				{isSubmitting ? "กำลังเข้า…" : "เข้า Teacher Control"}
 			</button>
 		</form>
 	);

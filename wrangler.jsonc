@@ -36,9 +36,9 @@
 		"enabled": true
 	},
 	"upload_source_maps": true,
-	"vars": {
-		"HOST_KEY": "teacher-demo"
-	},
+	// HOST_KEY is supplied at runtime as an encrypted Secret (Cloudflare dashboard → Variables and secrets).
+	// Do NOT declare it as a plaintext `var` here — a var with the same name overwrites the Secret on every deploy.
+	// For local dev, HOST_KEY is set in `.dev.vars`.
 	"durable_objects": {
 		"bindings": [
 			{
